@@ -17,7 +17,7 @@ function App(){
       <section style={styles.hero}>
         <h1>Automate your Sreenshot Workflow</h1>
         <p>Capture, process and manage screenshots efficiently with our smart pipeline solution.</p>
-        <button style={styles.button}>Get Started</button>
+        <button style={styles.button}>Start Now</button>
       </section>
 
       {/* Features */}
