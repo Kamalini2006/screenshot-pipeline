@@ -33,6 +33,8 @@ import waitOn from "wait-on";
     await browser.close();
     server.kill();
 
+    process.exit(0);
+
   } catch (error) {
     console.error("❌ Error:", error);
   }
