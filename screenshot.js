@@ -1,11 +1,9 @@
-import fs from"fs";
-import { chromium } from "playwright";
-import { exec } from "child_process";
-import waitOn from "wait-on";
 import fs from "fs";
+import process from "process";
 import pixelmatch from "pixelmatch";
 import { PNG } from "pngjs";
 const thresholdPercent = 0.1; // allow 0.1% difference
+const newScreenshotPath = "homepage-new.png";
 
 if (fs.existsSync("homepage.png")) {
   const img1 = PNG.sync.read(fs.readFileSync("homepage.png"));
