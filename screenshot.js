@@ -1,21 +1,19 @@
 import { chromium } from "playwright";
 import { exec } from "child_process";
 import waitOn from "wait-on";
+import fs from "fs";
+import pixelmatch from "pixelmatch";
+import { PNG } from "pngjs";
 
 (async () => {
   try {
-    // Start static server
     const server = exec("npx serve dist -l 3000");
 
-    // Wait until server is ready
     await waitOn({
       resources: ["http://localhost:3000"],
       timeout: 10000,
     });
 
-    console.log("✅ Server is ready");
-
-    // Launch browser
     const browser = await chromium.launch();
     const page = await browser.newPage();
 
@@ -23,19 +21,48 @@ import waitOn from "wait-on";
       waitUntil: "networkidle",
     });
 
+    const newScreenshotPath = "homepage-new.png";
     await page.screenshot({
-      path: "homepage.png",
+      path: newScreenshotPath,
       fullPage: true,
     });
-
-    console.log("✅ Screenshot saved");
 
     await browser.close();
     server.kill();
 
-    process.exit(0);
+    // If baseline exists → compare
+    if (fs.existsSync("homepage.png")) {
+      const img1 = PNG.sync.read(fs.readFileSync("homepage.png"));
+      const img2 = PNG.sync.read(fs.readFileSync(newScreenshotPath));
+
+      const { width, height } = img1;
+      const diff = new PNG({ width, height });
+
+      const numDiffPixels = pixelmatch(
+        img1.data,
+        img2.data,
+        diff.data,
+        width,
+        height,
+        { threshold: 0.1 }
+      );
+
+      if (numDiffPixels > 0) {
+        console.error("❌ Visual differences detected!");
+        process.exit(1);
+      } else {
+        console.log("✅ No visual changes detected.");
+        fs.unlinkSync(newScreenshotPath);
+        process.exit(0);
+      }
+    } else {
+      fs.renameSync(newScreenshotPath, "homepage.png");
+      console.log("📸 Baseline screenshot created.");
+      process.exit(0);
+    }
 
   } catch (error) {
     console.error("❌ Error:", error);
+    process.exit(1);
   }
 })();
